@@ -1,0 +1,35 @@
+{
+  "name": "logging-module",
+  "version": "1.0.0",
+  "description": "Player logging module",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "jshint . & istanbul cover node_modules/mocha/bin/_mocha -- --reporter mocha-junit-reporter --reporter-options mochaFile=test/test-results.xml --recursive test/unit",
+    "build": "jshint . & webpack --config webpack.config.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Rise-Vision/logging-module.git"
+  },
+  "author": "Rise Vision",
+  "license": "GPL-3.0",
+  "bugs": {
+    "url": "https://github.com/Rise-Vision/logging-module/issues"
+  },
+  "homepage": "https://github.com/Rise-Vision/logging-module#readme",
+  "devDependencies": {
+    "babel-minify-webpack-plugin": "^0.2.0",
+    "istanbul": "^0.4.5",
+    "jshint": "^2.9.5",
+    "mocha": "^4.0.0",
+    "mocha-junit-reporter": "^1.15.0",
+    "simple-mock": "^0.8.0",
+    "source-map-support": "^0.5.0",
+    "webpack": "^3.6.0",
+    "zip-webpack-plugin": "^2.0.0"
+  },
+  "dependencies": {
+    "node-ipc": "^9.1.1",
+    "rise-common-electron": "git+https://github.com/Rise-Vision/rise-common-electron.git"
+  }
+}

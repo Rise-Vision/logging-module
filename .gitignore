@@ -57,3 +57,7 @@ typings/
 # dotenv environment variables file
 .env
 
+#DIST
+dist/
+
+test/test-results.xml
