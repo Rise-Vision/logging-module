@@ -4,6 +4,8 @@ const fs = require("fs");
 const MinifyPlugin = require("babel-minify-webpack-plugin");
 const pkg = require("./package.json");
 const ZipPlugin = require("zip-webpack-plugin");
+const UnzipsfxPlugin = require("unzipsfx-webpack-plugin");
+
 
 const nodeModules = {};
 fs.readdirSync("node_modules")
@@ -23,13 +25,16 @@ module.exports = {
   },
   externals: nodeModules,
   plugins: [
-    new webpack.IgnorePlugin(/\.(css|less)$/),
-    new webpack.BannerPlugin({ banner: "require("source-map-support").install();", raw: true, entryOnly: false }),
+    new webpack.BannerPlugin({ banner: "require(\"source-map-support\").install();", raw: true, entryOnly: false }),
     new MinifyPlugin(),
     new ZipPlugin({
       path: path.join(__dirname, "dist"),
       filename: "logging-module",
-      pathPrefix: "logging-module/" + pkg.version,
+      pathPrefix: path.join("logging-module", pkg.version)
+    }),
+    new UnzipsfxPlugin({
+      outputPath: path.join(__dirname, "dist"),
+      outputFilename: "logging-module",
     })
   ],
   devtool: "sourcemap"
