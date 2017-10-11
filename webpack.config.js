@@ -16,7 +16,7 @@ const nodeExternals = require('webpack-node-externals');module.exports = {
     filename: "index.js"
   },
   plugins: [
-    new CopyWebpackPlugin([{from: "./node_modules", to: 'node_modules'}]),
+    new CopyWebpackPlugin([{from: "./temp/node_modules", to: 'node_modules'}]),
     new MinifyPlugin(),
     new ZipPlugin({
       path: path.join(__dirname, "dist"),

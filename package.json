@@ -4,8 +4,8 @@
   "description": "Player logging module",
   "main": "src/index.js",
   "scripts": {
-    "test": "jshint . & istanbul cover node_modules/mocha/bin/_mocha -- --reporter mocha-junit-reporter --reporter-options mochaFile=test/test-results.xml --recursive test/unit",
-    "build": "jshint . & webpack --config webpack.config.js"
+    "test": "jshint . && istanbul cover node_modules/mocha/bin/_mocha -- --reporter mocha-junit-reporter --reporter-options mochaFile=test/test-results.xml --recursive test/unit",
+    "build": "jshint . && mkdir -p temp && cp package.json ./temp && cd ./temp && npm install --production && cd .. && webpack --config webpack.config.js"
   },
   "repository": {
     "type": "git",
