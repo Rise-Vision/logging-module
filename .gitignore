@@ -60,4 +60,6 @@ typings/
 #DIST
 dist/
 
+temp/
+
 test/test-results.xml
