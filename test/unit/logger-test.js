@@ -1,46 +1,80 @@
 const assert = require("assert"),
-simpleMock = require("simple-mock"),
-mock = simpleMock.mock,
-riseCommonElectron = require("rise-common-electron"),
-logger = require("../../src/logger"),
-bqController = {init: ()=>{}, log: ()=>{}};
+  fs = require("fs"),
+  path = require("path"),
+  simpleMock = require("simple-mock"),
+  mock = simpleMock.mock,
+  commonConfig = require("common-display-module");
 
-let entry = null;
+let bqClient, logger, entry;
 
-describe("Installer logger", () => {
-
-  beforeEach("setup", ()=> {
-    mock(riseCommonElectron, "bqController").returnWith(bqController);
+describe("Logger", ()=>{
+  beforeEach(()=>{
     entry = {
       projectName: "projectName",
       datasetName: "datasetName",
       failedEntryFile: "failedEntryFile",
       table: "table",
-      data: {}
+      data: {
+        event: "info",
+        event_details: "test info",
+        error_details: "",
+        display_id: "abc123"
+      },
+      suffix: "20171030"
     };
+
+    mock(commonConfig, "getInstallDir").returnWith("test_dir");
+    mock(log, "file").returnWith();
+
+    logger = require("../../src/logger");
+    // necessary for tests to be able to mock the bqClient
+    logger.init(entry);
+
+    bqClient = logger.getBQClient(entry.projectName, entry.datasetName);
   });
 
   afterEach(()=>{
     simpleMock.restore();
   });
 
-  it("should log an entry", function() {
-
-    mock(bqController,"log").resolveWith();
-    mock(bqController,"init").resolveWith();
+  it("successfully inserts event data", ()=>{
+    mock(bqClient, "insert").resolveWith();
+    mock(logger, "init");
 
     return logger.log(entry)
       .then(()=>{
-        assert.deepEqual(riseCommonElectron.bqController.lastCall.args, [entry.projectName, entry.datasetName,entry.failedEntryFile, "./"]);
-        assert(bqController.init.called);
-        assert.ok((bqController.log.lastCall.args.includes(entry.table) && bqController.log.lastCall.args.includes(entry.data)));
+        assert.equal(logger.init.callCount, 0);
+        assert(bqClient.insert.called);
+        assert.equal(bqClient.insert.firstCall.args[0], entry.table);
+        assert.equal(bqClient.insert.firstCall.args[1].event, entry.data.event);
+        assert(bqClient.insert.firstCall.args[1].hasOwnProperty("ts"));
+        assert(bqClient.insert.firstCall.args[3], entry.suffix);
+      });
+  });
+
+  it("adds failed log entries on insert failure", ()=>{
+    before(()=>{
+      try {
+        fs.unlinkSync(path.join(commonConfig.getInstallDir(), entry.failedEntryFile));
+      } catch(e){}
+    });
+
+    after(()=>{
+      try {
+        fs.unlinkSync(path.join(commonConfig.getInstallDir(), entry.failedEntryFile));
+      } catch(e){}
+    });
+
+    mock(bqClient, "insert").rejectWith();
+
+    return logger.log(entry)
+      .catch(()=>{
+        assert.equal(Object.keys(logger.getPendingEntries(entry.projectName, entry.datasetName)).length, 1);
       });
   });
 
   it("should resolve to an error if no entry is null", function() {
-    entry = null;
-
-    return logger.log(entry)
+    return logger.log(null)
       .catch((err)=>{
         assert.equal(err.message, "Entry is required");
       });
