@@ -1,37 +1,22 @@
-const ipc = require("node-ipc");
 const logger = require("./logger");
+const commonConfig = require("common-display-module");
 
-global.log = global.log || {error:console.log,debug:console.log};
+let debugging = process.argv.slice(1).join(" ").indexOf("debug") > -1,
+  debug = (debugging ? (msg)=>{console.log(msg);} : ()=>{});
 
-ipc.config.id   = "logging-module";
-ipc.config.retry= 1500;
+commonConfig.receiveMessages("logger").then((receiver) => {
 
-ipc.connectTo(
-    "ms",
-    function(){
-        ipc.of.ms.on(
-            "connect",
-            function(){
-                ipc.log("## connected to ms ##".rainbow, ipc.config.delay);
-              }
-        );
-        ipc.of.ms.on(
-            "disconnect",
-            function(){
-                ipc.log("disconnected from ms".notice);
-            }
-        );
-        ipc.of.ms.on(
-            "message",
-            function(data){
-                ipc.log("got a message from ms : ".debug, data);
-                if(data.message === "log") {
-                  logger.log(data.entry)
-                    .catch((error)=>{
-                        log.error(`Could not log to BQ: ${error.message}`);
-                    });
-                }
-            }
-        );
+  receiver.on("message", (message) => {
+    switch(message.topic) {
+      case "log":
+        debug(JSON.stringify(message.data));
+
+        logger.log(message.data)
+          .catch((e)=>{
+            debug(e);
+          });
+        break;
     }
-);
+  });
+
+});
