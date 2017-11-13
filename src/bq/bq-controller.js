@@ -1,9 +1,9 @@
 module.exports = (projectName, dataSetName, filename, installPath)=>{
   var bqClient = require("./bq-client.js")(projectName, dataSetName),
     fs = require("fs"),
-    installPath = installPath || require("os").homedir(),
+    installerPath = installPath || require("os").homedir(),
     failedLogEntries = {},
-    FAILED_FILE_PATH = require("path").join(installPath, filename),
+    FAILED_FILE_PATH = require("path").join(installerPath, filename),
     MAX_FAILED_LOG_QUEUE = 50,
     FAILED_LOG_QUEUE_PURGE_COUNT = 10,
     TEN_MINUTE_MS = 60 * 1000 * 10,

@@ -53,7 +53,7 @@ module.exports = {
   init(entry){
     let key = `${entry.projectName}_${entry.datasetName}`;
 
-    bqControllers[key] = require("../bq-controller")(entry.projectName, entry.datasetName, entry.failedEntryFile, commonConfig.getInstallDir());
+    bqControllers[key] = require("./bq/bq-controller")(entry.projectName, entry.datasetName, entry.failedEntryFile, commonConfig.getInstallDir());
 
     bqControllers[key].init();
   },
