@@ -1,10 +1,11 @@
 const logger = require("./logger");
+const config = require("./config/config");
 const commonConfig = require("common-display-module");
 
 let debugging = process.argv.slice(1).join(" ").indexOf("debug") > -1,
   debug = (debugging ? (msg)=>{console.log(msg);} : ()=>{});
 
-commonConfig.receiveMessages("logger").then((receiver) => {
+commonConfig.receiveMessages(config.moduleName).then((receiver) => {
 
   receiver.on("message", (message) => {
     switch(message.topic) {
