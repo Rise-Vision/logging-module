@@ -4,9 +4,8 @@
   "description": "Player logging module",
   "main": "src/index.js",
   "scripts": {
-    "build": "jshint src && ./pre-build.sh && webpack --env.MODULE_VERSION=$(cat version) --config webpack.config.js && ./post-build.sh",
-    "test": "jshint src && istanbul cover node_modules/mocha/bin/_mocha -- --reporter mocha-junit-reporter --reporter-options mochaFile=test/test-results.xml --recursive test/unit",
-    "test-no-coverage": "jshint src && mocha --recursive test/unit"
+    "build": "eslint . && ./pre-build.sh && webpack --env.MODULE_VERSION=$(cat version) --config webpack.config.js && ./post-build.sh",
+    "test": "eslint --fix . && mocha -r test/mocha-env.js -t 20000 --recursive --exit test/unit/**"
   },
   "repository": {
     "type": "git",
@@ -21,10 +20,13 @@
   "devDependencies": {
     "babel-minify-webpack-plugin": "^0.2.0",
     "copy-webpack-plugin": "^4.1.1",
-    "istanbul": "^0.4.5",
-    "jshint": "^2.9.5",
+    "eslint": "^4.10.0",
+    "eslint-config-standard": "^10.2.1",
+    "eslint-plugin-import": "^2.8.0",
+    "eslint-plugin-node": "^5.2.0",
+    "eslint-plugin-promise": "^3.6.0",
+    "eslint-plugin-standard": "^3.0.1",
     "mocha": "^4.0.0",
-    "mocha-junit-reporter": "^1.15.0",
     "simple-mock": "^0.8.0",
     "source-map-support": "^0.5.0",
     "unzipsfx-webpack-plugin": "git+https://github.com/Rise-Vision/unzipsfx-webpack-plugin.git",
@@ -33,8 +35,8 @@
     "zip-webpack-plugin": "^2.0.0"
   },
   "dependencies": {
-    "common-display-module": "git://github.com/Rise-Vision/common-display-module.git#v1.5.6",
+    "common-display-module": "git://github.com/Rise-Vision/common-display-module.git#v1.6.0",
     "node-ipc": "^9.1.1",
-    "rise-common-electron": "git+https://github.com/Rise-Vision/rise-common-electron.git#v2.1.3"
+    "rise-common-electron": "git+https://github.com/Rise-Vision/rise-common-electron.git#v2.2.4"
   }
 }

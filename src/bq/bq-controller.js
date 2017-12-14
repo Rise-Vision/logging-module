@@ -1,42 +1,48 @@
-module.exports = (projectName, dataSetName, filename, installPath)=>{
-  var bqClient = require("./bq-client.js")(projectName, dataSetName),
-    fs = require("fs"),
-    installerPath = installPath || require("os").homedir(),
-    failedLogEntries = {},
-    FAILED_FILE_PATH = require("path").join(installerPath, filename),
-    MAX_FAILED_LOG_QUEUE = 50,
-    FAILED_LOG_QUEUE_PURGE_COUNT = 10,
-    TEN_MINUTE_MS = 60 * 1000 * 10,
-    FIVE_HOURS_MS = TEN_MINUTE_MS * 6 * 5,
-    INITIAL_FAILED_LOG_RETRY_MS = 10000,
-    FAILED_ENTRY_RETRY_MS = TEN_MINUTE_MS,
-    PERSIST_FAILURE_DEBOUNCE = 5000,
-    persistFailuresTimeout,
-    insertPending;
+/* eslint-disable no-magic-numbers, max-statements, max-params */
 
-  function addFailedLogEntry(tableName, data, date, templateSuffix) {
-    if (Object.keys(failedLogEntries).length >= MAX_FAILED_LOG_QUEUE) { purgeOldEntries(); }
+const fs = require("fs");
+const path = require("path");
+const os = require("os");
+
+module.exports = (projectName, dataSetName, filename, installPath)=>{
+  const bqClient = require("./bq-client.js")(projectName, dataSetName); // eslint-disable-line global-require
+  const installerPath = installPath || os.homedir();
+  const FAILED_FILE_PATH = path.join(installerPath, filename);
+  const MAX_FAILED_LOG_QUEUE = 50;
+  const FAILED_LOG_QUEUE_PURGE_COUNT = 10;
+  const TEN_MINUTE_MS = 60 * 1000 * 10;
+  const FIVE_HOURS_MS = TEN_MINUTE_MS * 6 * 5;
+  const INITIAL_FAILED_LOG_RETRY_MS = 10000;
+  const PERSIST_FAILURE_DEBOUNCE = 5000;
+
+  let failedLogEntries = {};
+  let FAILED_ENTRY_RETRY_MS = TEN_MINUTE_MS;
+  let insertPending = null;
+  let persistFailuresTimeout = null;
+
+  const addFailedLogEntry = function(tableName, data, date, templateSuffix) {
+    if (Object.keys(failedLogEntries).length >= MAX_FAILED_LOG_QUEUE) {purgeOldEntries();}
     failedLogEntries[Number(date)] = [tableName, data, date, templateSuffix];
     schedulePersist();
-  }
+  };
 
-  function purgeOldEntries() {
+  const purgeOldEntries = function() {
     Object.keys(failedLogEntries)
-      .sort((a, b)=>a-b)
+      .sort((a, b)=>a - b) // eslint-disable-line id-length
       .slice(0, FAILED_LOG_QUEUE_PURGE_COUNT)
       .forEach((key)=>{
-        delete failedLogEntries[key];
+        Reflect.deleteProperty(failedLogEntries, key);
       });
   }
 
-  function insertFailedLogEntries() {
+  const insertFailedLogEntries = function() {
     insertPending = null;
     log.file("Inserting failed bq log entries");
     Object.keys(failedLogEntries).reduce((promiseChain, key)=>{
       return promiseChain.then(()=>insert(...failedLogEntries[key]))
         .then(()=>{
-          log.file("inserted " + key);
-          delete failedLogEntries[key];
+          log.file(`inserted ${key}`);
+          Reflect.deleteProperty(failedLogEntries, key);
         });
     }, Promise.resolve())
       .catch(()=>{
@@ -48,59 +54,60 @@ module.exports = (projectName, dataSetName, filename, installPath)=>{
       });
   }
 
-  function scheduleLogInsert() {
+  const scheduleLogInsert = function() {
     if (!insertPending) {
       insertPending = setTimeout(insertFailedLogEntries, FAILED_ENTRY_RETRY_MS);
       FAILED_ENTRY_RETRY_MS = Math.min(FAILED_ENTRY_RETRY_MS * 1.5, FIVE_HOURS_MS);
     }
   }
 
-  function schedulePersist() {
+  const schedulePersist = function() {
     if (persistFailuresTimeout) {clearTimeout(persistFailuresTimeout);}
     persistFailuresTimeout = setTimeout(persistFailures, PERSIST_FAILURE_DEBOUNCE);
   }
 
-  function persistFailures() {
+  const persistFailures = function() {
     persistFailuresTimeout = null;
     fs.writeFile(FAILED_FILE_PATH, JSON.stringify(failedLogEntries, null, 2), {
       encoding: "utf8"
     }, (err)=>{
       if (err) {
-        log.file("Could not save failed log entries. " + err.message);
+        log.file(`Could not save failed log entries. ${err.message}`);
       }
     });
   }
 
-  function insert(tableName, data, date, templateSuffix) {
+  const insert = function(tableName, data, date, templateSuffix) {
     return bqClient.insert(tableName, data, date, templateSuffix)
-      .catch(e=>{
+      .catch(err=>{
         addFailedLogEntry(tableName, data, date, templateSuffix);
         scheduleLogInsert();
 
-        return Promise.reject(e);
+        return Promise.reject(err);
       });
   }
 
-  var mod = {
-    getBQClient() { return bqClient; },
+  const mod = {
+    getBQClient() {return bqClient;},
     getDateForTableName(date) {
-      date = new Date(date);
-      var year = date.getUTCFullYear(),
-        month = date.getUTCMonth() + 1,
-        day = date.getUTCDate();
+      const dateVal = new Date(date);
+      const year = dateVal.getUTCFullYear();
 
-      if (month < 10) {month = "0" + month;}
-      if (day < 10) {day = "0" + day;}
+      let day = dateVal.getUTCDate(),
+        month = dateVal.getUTCMonth() + 1;
 
-      return "" + year + month + day;
+      if (month < 10) {month = `0${month}`;}
+      if (day < 10) {day = `0${day}`;}
+
+      return String(year) + month + day;
     },
     init() {
       try {
-        failedLogEntries = require(FAILED_FILE_PATH);
+        failedLogEntries = require(FAILED_FILE_PATH); // eslint-disable-line global-require
         if (Object.keys(failedLogEntries).length) {
           insertPending = insertPending || setTimeout(insertFailedLogEntries, INITIAL_FAILED_LOG_RETRY_MS);
         }
-      } catch(e) {
+      } catch (err) {
         failedLogEntries = {};
       }
     },

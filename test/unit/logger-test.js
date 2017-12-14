@@ -1,11 +1,16 @@
-const assert = require("assert"),
-  fs = require("fs"),
-  path = require("path"),
-  simpleMock = require("simple-mock"),
-  mock = simpleMock.mock,
-  commonConfig = require("common-display-module");
+/* eslint-env mocha */
+/* eslint-disable max-statements, no-magic-numbers, global-require */
 
-let bqClient, logger, entry;
+const assert = require("assert");
+const fs = require("fs");
+const path = require("path");
+const simpleMock = require("simple-mock");
+const mock = simpleMock.mock;
+const commonConfig = require("common-display-module");
+
+let bqClient = null;
+let entry = null
+let logger = null;
 
 describe("Logger", ()=>{
   beforeEach(()=>{
@@ -47,7 +52,7 @@ describe("Logger", ()=>{
         assert(bqClient.insert.called);
         assert.equal(bqClient.insert.firstCall.args[0], entry.table);
         assert.equal(bqClient.insert.firstCall.args[1].event, entry.data.event);
-        assert(bqClient.insert.firstCall.args[1].hasOwnProperty("ts"));
+        assert(Object.prototype.hasOwnProperty.call(bqClient.insert.firstCall.args[1], "ts"));
         assert(bqClient.insert.firstCall.args[3], entry.suffix);
       });
   });
@@ -56,13 +61,17 @@ describe("Logger", ()=>{
     before(()=>{
       try {
         fs.unlinkSync(path.join(commonConfig.getInstallDir(), entry.failedEntryFile));
-      } catch(e){}
+      } catch (err) {
+        console.log(err);
+      }
     });
 
     after(()=>{
       try {
         fs.unlinkSync(path.join(commonConfig.getInstallDir(), entry.failedEntryFile));
-      } catch(e){}
+      } catch (err) {
+        console.log(err);
+      }
     });
 
     mock(bqClient, "insert").rejectWith();

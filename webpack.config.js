@@ -5,7 +5,7 @@ const nodeExternals = require("webpack-node-externals");
 const ZipPlugin = require("zip-webpack-plugin");
 const UnzipsfxPlugin = require("unzipsfx-webpack-plugin");
 
-module.exports = env =>  {
+module.exports = env => {
 
   return {
     entry: "./src/index.js",
@@ -20,11 +20,11 @@ module.exports = env =>  {
       new MinifyPlugin(),
       new ZipPlugin({
         path: path.join(__dirname, "build"),
-        filename: "logging",
+        filename: "logging"
       }),
       new UnzipsfxPlugin({
         outputPath: path.join(__dirname, "build"),
-        outputFilename: "logging",
+        outputFilename: "logging"
       })
     ]
   };
