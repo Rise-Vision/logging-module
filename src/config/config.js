@@ -2,4 +2,22 @@ const MODULE_NAME = "logging";
 
 module.exports = {
   moduleName: MODULE_NAME,
+  serviceUrl: "https://www.googleapis.com/bigquery/v2/projects/PROJECT_NAME/datasets/DATA_SET/tables/TABLE_ID/insertAll",
+  refreshUrl: "https://www.googleapis.com/oauth2/v3/token?client_id=1088527147109-6q1o2vtihn34292pjt4ckhmhck0rk0o7.apps.googleusercontent.com&client_secret=nlZyrcPLg6oEwO9f9Wfn29Wh&refresh_token=1/xzt4kwzE1H7W9VnKB8cAaCx6zb4Es4nKEoqaYHdTD15IgOrJDtdun6zK6XiATCKT&grant_type=refresh_token",
+  insertSchema: {
+    "kind": "bigquery#tableDataInsertAllRequest",
+      "skipInvalidRows": false,
+      "ignoreUnknownValues": false,
+      "rows": [
+      {
+        "insertId": "",
+        "json": {
+          "event": "",
+          "display_id": "",
+          "event_details": "",
+          "ts": 0
+        }
+      }
+    ]
+  }
 };
