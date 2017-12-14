@@ -13,13 +13,11 @@ log.resetLogFiles(maxFileSizeBytes);
 commonConfig.receiveMessages(config.moduleName).then((receiver) => {
 
   receiver.on("message", (message) => {
-    switch(message.topic) {
-      case "log":
-        logger.log(message.data)
-          .catch((err)=>{
-            log.debug(err.message);
-          });
-        break;
+    if (message.topic === "log") {
+      logger.log(message.data)
+        .catch((err)=>{
+          log.debug(err.message);
+        });
     }
   });
 

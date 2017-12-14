@@ -1,12 +1,14 @@
-var network = require("rise-common-electron").network;
+const network = require("rise-common-electron").network;
+const config = require("../../src/config/config");
 
 module.exports = (projectName, dataSetName, refreshUrl)=>{
-  var config = require("rise-common-electron/config.json"),
-  refreshDate = 0,
-  token = "";
+  const sixtyMins = 3580000;
 
-  function refreshToken(nowDate) {
-    if (nowDate - refreshDate < 3580000) {
+  let refreshDate = 0,
+    token = "";
+
+  const refreshToken = function(nowDate) {
+    if (nowDate - refreshDate < sixtyMins) {
       return Promise.resolve(token);
     }
 
@@ -16,38 +18,36 @@ module.exports = (projectName, dataSetName, refreshUrl)=>{
       refreshDate = nowDate;
       token = json.access_token;
     });
-  }
+  };
 
-  var mod = {
+  const mod = {
     refreshToken,
-    insert(tableName, data, nowDate, templateSuffix) {
+    insert(tableName, data, nowDate, templateSuffix) { // eslint-disable-line max-params
       if (!projectName) {return Promise.reject("projectName is required");}
       if (!dataSetName) {return Promise.reject("dataSetName is required");}
       if (!tableName) {return Promise.reject("tableName is required");}
 
-      nowDate = nowDate || new Date();
+      nowDate = nowDate || new Date(); // eslint-disable-line no-param-reassign
 
       return mod.refreshToken(nowDate).then(()=>{
-        var insertData = JSON.parse(JSON.stringify(config.insertSchema)),
-        row = insertData.rows[0],
-        serviceUrl,
-        headers;
+        const insertData = JSON.parse(JSON.stringify(config.insertSchema));
+        const row = insertData.rows[0];
 
         if (templateSuffix) {
           insertData.templateSuffix = templateSuffix;
         }
 
-        serviceUrl = config.serviceUrl
+        const serviceUrl = config.serviceUrl
           .replace("PROJECT_NAME", projectName)
           .replace("DATA_SET", dataSetName)
           .replace("TABLE_ID", tableName);
 
-        headers = {
+        const headers = {
           "Content-Type": "application/json",
-          "Authorization": "Bearer " + token
+          "Authorization": `Bearer ${token}`
         };
 
-        row.insertId = Math.random().toString(36).substr(2).toUpperCase();
+        row.insertId = Math.random().toString(36).substr(2).toUpperCase(); // eslint-disable-line no-magic-numbers
         row.json = data;
 
         return network.httpFetch(serviceUrl, {
@@ -59,10 +59,8 @@ module.exports = (projectName, dataSetName, refreshUrl)=>{
           return res.json();
         })
         .then((json)=>{
-          if(!json.insertErrors || json.insertErrors.length === 0)
-            return Promise.resolve();
-          else
-            return Promise.reject(json.insertErrors);
+          if (!json.insertErrors || json.insertErrors.length === 0) {return Promise.resolve();}
+          return Promise.reject(json.insertErrors);
         });
       });
     }
