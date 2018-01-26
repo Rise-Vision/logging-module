@@ -1,6 +1,8 @@
 const logger = require("./logger");
 const config = require("./config/config");
 const commonConfig = require("common-display-module");
+const messaging = require("common-display-module/messaging");
+
 const modulePath = commonConfig.getModulePath(config.moduleName);
 const baseBytes = 10;
 const expo = 5;
@@ -10,7 +12,7 @@ global.log = require("rise-common-electron").logger(null, modulePath, config.mod
 
 log.resetLogFiles(maxFileSizeBytes);
 
-commonConfig.receiveMessages(config.moduleName).then((receiver) => {
+messaging.receiveMessages(config.moduleName).then((receiver) => {
 
   receiver.on("message", (message) => {
     if (message.topic === "log") {
