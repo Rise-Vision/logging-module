@@ -4,7 +4,8 @@
   "description": "Player logging module",
   "main": "src/index.js",
   "scripts": {
-    "build": "eslint . && ./pre-build.sh && webpack --env.MODULE_VERSION=$(cat version) --config webpack.config.js && ./post-build.sh",
+    "build": "eslint . && webpack",
+    "postbuild": "rimraf build/logging && rimraf build/*.zip",
     "test": "eslint --fix . && mocha -r test/mocha-env.js -t 20000 --recursive --exit test/unit/**"
   },
   "repository": {
@@ -19,6 +20,7 @@
   "homepage": "https://github.com/Rise-Vision/logging-module#readme",
   "devDependencies": {
     "babel-minify-webpack-plugin": "^0.2.0",
+    "clean-webpack-plugin": "^0.1.18",
     "copy-webpack-plugin": "^4.1.1",
     "eslint": "^4.10.0",
     "eslint-config-standard": "^10.2.1",
@@ -31,7 +33,6 @@
     "source-map-support": "^0.5.0",
     "unzipsfx-webpack-plugin": "git+https://github.com/Rise-Vision/unzipsfx-webpack-plugin.git",
     "webpack": "^3.7.1",
-    "webpack-node-externals": "^1.6.0",
     "zip-webpack-plugin": "^2.0.0"
   },
   "dependencies": {
